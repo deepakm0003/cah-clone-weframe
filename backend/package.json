@@ -3,19 +3,23 @@
   "version": "1.0.0",
   "description": "Medusa.js backend for Cards Against Humanity clone",
   "scripts": {
-    "build": "medusa build",
-    "start": "medusa start",
-    "dev": "medusa dev",
-    "seed": "medusa db:migrate && medusa exec ./src/scripts/seed.ts"
+    "build": "npx medusa build",
+    "start": "npx medusa start",
+    "dev": "npx medusa dev",
+    "seed": "npx medusa db:migrate && npx medusa exec ./src/scripts/seed.ts"
   },
   "dependencies": {
     "@medusajs/medusa": "^2.4.0",
     "@medusajs/framework": "^2.4.0",
     "@medusajs/admin-bundler": "^2.4.0",
     "@medusajs/dashboard": "^2.4.0",
+    "@medusajs/cli": "^2.4.0",
+    "@medusajs/payment-manual": "^2.4.0",
+    "@medusajs/fulfillment-manual": "^2.4.0",
     "awilix": "^8.0.1",
     "cross-env": "^7.0.3",
-    "pg": "^8.11.3"
+    "pg": "^8.11.3",
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/node": "^20.14.14",
