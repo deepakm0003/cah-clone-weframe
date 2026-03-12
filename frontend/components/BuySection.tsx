@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { motion } from "framer-motion"
+import Link from "next/link"
 
 const slides = [
   {
@@ -273,15 +274,17 @@ function SlideCard({ slide }: { slide: typeof slides[0] }) {
           <h3 className="text-[26px] md:text-[44px] font-bold leading-[1.05] text-black mb-5 max-w-[280px] md:max-w-[340px] tracking-tight">
             {slide.title}
           </h3>
-          <button
-            className="text-[13px] md:text-[16px] font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-full w-fit transition-all duration-300 tracking-tight border-2 border-black"
-            style={{
-              backgroundColor: hovered ? "white" : "black",
-              color: hovered ? "black" : "white",
-            }}
-          >
-            {slide.buttonText}
-          </button>
+          <Link href="/products/more-cah">
+            <button
+              className="text-[13px] md:text-[16px] font-bold px-6 py-3 md:px-8 md:py-3.5 rounded-full w-fit transition-all duration-300 tracking-tight border-2 border-black"
+              style={{
+                backgroundColor: hovered ? "white" : "black",
+                color: hovered ? "black" : "white",
+              }}
+            >
+              {slide.buttonText}
+            </button>
+          </Link>
         </div>
       </div>
     </div>

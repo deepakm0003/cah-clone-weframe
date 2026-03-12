@@ -61,11 +61,11 @@ export default function Navbar() {
               {shopOpen && (
                 <div className="absolute top-full left-0 pt-1">
                   <div className="bg-white border border-gray-200 rounded-lg shadow-lg py-1.5 min-w-[160px]">
-                    <Link href="#" className="block px-3.5 py-1.5 text-[13px] hover:bg-gray-50">All Products</Link>
-                    <Link href="#" className="block px-3.5 py-1.5 text-[13px] hover:bg-gray-50">Main Games</Link>
-                    <Link href="#" className="block px-3.5 py-1.5 text-[13px] hover:bg-gray-50">Expansions</Link>
-                    <Link href="#" className="block px-3.5 py-1.5 text-[13px] hover:bg-gray-50">Packs</Link>
-                    <Link href="#" className="block px-3.5 py-1.5 text-[13px] hover:bg-gray-50">Other Stuff</Link>
+                    <Link href="/products/more-cah" className="block px-3.5 py-1.5 text-[13px] hover:bg-gray-50">All Products</Link>
+                    <Link href="/products/more-cah" className="block px-3.5 py-1.5 text-[13px] hover:bg-gray-50">Main Games</Link>
+                    <Link href="/products/more-cah" className="block px-3.5 py-1.5 text-[13px] hover:bg-gray-50">Expansions</Link>
+                    <Link href="/products/more-cah" className="block px-3.5 py-1.5 text-[13px] hover:bg-gray-50">Packs</Link>
+                    <Link href="/products/more-cah" className="block px-3.5 py-1.5 text-[13px] hover:bg-gray-50">Other Stuff</Link>
                   </div>
                 </div>
               )}
