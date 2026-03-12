@@ -25,6 +25,7 @@ export default buildConfig({
       titleSuffix: '- CAH CMS',
     },
   },
+  serverURL: process.env.NEXT_PUBLIC_SERVER_URL || '',
   collections: [Users, Media, Products, FAQs],
   globals: [Homepage, FooterGlobal],
   editor: lexicalEditor(),
@@ -40,12 +41,12 @@ export default buildConfig({
   sharp,
   cors: [
     process.env.FRONTEND_URL || 'http://localhost:3000',
-    'https://your-frontend.vercel.app',
-  ],
+    process.env.NEXT_PUBLIC_SERVER_URL || '',
+  ].filter(Boolean),
   csrf: [
     process.env.FRONTEND_URL || 'http://localhost:3000',
-    'https://your-frontend.vercel.app',
-  ],
+    process.env.NEXT_PUBLIC_SERVER_URL || '',
+  ].filter(Boolean),
   plugins: [],
   // Sync products to Medusa after create/update
   hooks: {},
