@@ -34,8 +34,9 @@ export const Homepage: GlobalConfig = {
     },
     {
       name: 'featuredProducts',
-      type: 'relationship',
-      relationTo: 'products',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      type: 'relationship' as any,
+      relationTo: 'products' as any,
       hasMany: true,
       label: 'Products to show in hero/featured sections',
     },

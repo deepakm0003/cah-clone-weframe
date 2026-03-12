@@ -86,8 +86,9 @@ export const Products: CollectionConfig = {
     },
     {
       name: 'relatedProducts',
-      type: 'relationship',
-      relationTo: 'products',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      type: 'relationship' as any,
+      relationTo: 'products' as any,
       hasMany: true,
     },
   ],
