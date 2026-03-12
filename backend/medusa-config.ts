@@ -13,15 +13,8 @@ module.exports = defineConfig({
       cookieSecret: process.env.COOKIE_SECRET || 'supersecret',
     },
   },
-  modules: [
-    {
-      resolve: '@medusajs/payment-manual',
-    },
-    {
-      resolve: '@medusajs/fulfillment-manual',
-    },
-  ],
   admin: {
     backendUrl: process.env.MEDUSA_BACKEND_URL || 'http://localhost:9000',
   },
 })
+

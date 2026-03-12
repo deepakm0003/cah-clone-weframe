@@ -14,8 +14,6 @@
     "@medusajs/admin-bundler": "^2.4.0",
     "@medusajs/dashboard": "^2.4.0",
     "@medusajs/cli": "^2.4.0",
-    "@medusajs/payment-manual": "^2.4.0",
-    "@medusajs/fulfillment-manual": "^2.4.0",
     "awilix": "^8.0.1",
     "cross-env": "^7.0.3",
     "pg": "^8.11.3",
