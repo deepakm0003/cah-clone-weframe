@@ -9,7 +9,7 @@ export default async function productUpdatedHandler({
   const payloadSecret = process.env.PAYLOAD_SECRET || ""
 
   try {
-    const productService = container.resolve("productModuleService")
+    const productService = container.resolve("productModuleService") as any
     const [product] = await productService.listProducts({ id: [data.id] })
 
     if (!product) return
@@ -23,7 +23,7 @@ export default async function productUpdatedHandler({
       },
     })
       .then((r) => r.json())
-      .then(async (existing) => {
+      .then(async (existing: any) => {
         const payloadData = {
           medusaProductId: data.id,
         }

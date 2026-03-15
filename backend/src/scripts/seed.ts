@@ -1,9 +1,7 @@
 import { IProductModuleService } from "@medusajs/framework/types"
 import { Modules } from "@medusajs/framework/utils"
-import { ExecArgs } from "@medusajs/framework"
-
 // Seed test products matching the Cards Against Humanity catalog
-export default async function seed({ container }: ExecArgs) {
+export default async function seed({ container }: any) {
   const productService: IProductModuleService = container.resolve(Modules.PRODUCT)
 
   console.log("Seeding products...")
