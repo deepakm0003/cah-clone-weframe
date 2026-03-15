@@ -8,6 +8,11 @@ export default async function productUpdatedHandler({
   const payloadUrl = process.env.PAYLOAD_URL || "http://localhost:3001"
   const payloadSecret = process.env.PAYLOAD_SECRET || ""
 
+  if (!payloadSecret) {
+    console.warn("Payload secret not found. Skipping Medusa → Payload sync.")
+    return
+  }
+
   try {
     const productService = container.resolve("productModuleService") as any
     const [product] = await productService.listProducts({ id: [data.id] })
