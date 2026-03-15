@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "Medusa.js backend for Cards Against Humanity clone",
   "scripts": {
-    "build": "npx medusa build",
-    "start": "npx medusa start",
-    "dev": "npx medusa dev",
-    "seed": "npx medusa db:migrate && npx medusa exec ./src/scripts/seed.ts"
+    "build": "medusa build",
+    "start": "medusa start",
+    "dev": "medusa dev",
+    "seed": "medusa db:migrate && medusa exec ./src/scripts/seed.ts"
   },
   "dependencies": {
     "@medusajs/medusa": "^2.4.0",
