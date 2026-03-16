@@ -3,59 +3,41 @@
 import Image from "next/image";
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import type { MedusaProduct } from "@/lib/medusa";
 
-const relatedProducts = [
+const relatedProductsStatic = [
   {
-    id: 1,
+    handle: "tales-vol-1",
     title: "Tales Vol. 1",
     description: "A book of fill-in-the-blank stories to play with your CAH cards.",
     image: "/images/image.png",
     price: "€19.99",
-    priceNum: 19.99,
     isNew: true,
-    available: true,
-    href: "https://www.cardsagainsthumanity.com/products/tales-vol-1",
   },
   {
-    id: 2,
+    handle: "shit-list",
     title: "Shit List",
     description: "A fresh way to play CAH where YOU write the answers, plus 80 black cards.",
     image: "/images/1.png",
     price: "€22.99",
-    priceNum: 22.99,
     isNew: true,
-    available: true,
-    href: "https://www.cardsagainsthumanity.com/products/shit-list",
   },
   {
-    id: 3,
+    handle: "twists-bundle",
     title: "Twists Bundle",
     description: "It's like playing for the first time again, four more times.",
     image: "/images/2.png",
-    price: null,
-    priceNum: 0,
+    price: "€49.99",
     isNew: true,
-    available: false,
-    href: "https://www.cardsagainsthumanity.com/products/twists-bundle",
   },
 ];
 
-type Product = (typeof relatedProducts)[0];
-type CartItem = { product: Product; qty: number };
-
 // ─── Cart Sidebar ─────────────────────────────────────────────────────────────
-function CartSidebar({
-  items,
-  onClose,
-  onUpdateQty,
-  onRemove,
-}: {
-  items: CartItem[];
-  onClose: () => void;
-  onUpdateQty: (id: number, qty: number) => void;
-  onRemove: (id: number) => void;
-}) {
-  const subtotal = items.reduce((sum, i) => sum + i.product.priceNum * i.qty, 0);
+function CartSidebar({ onClose }: { onClose: () => void }) {
+  const { cart, updateItem, removeItem, isLoading } = useCart();
+  const items = cart?.items || [];
+  const subtotal = (cart?.subtotal || 0) / 100;
 
   return (
     <div
@@ -84,24 +66,29 @@ function CartSidebar({
           <p className="text-gray-400 text-[15px] text-center mt-10">Your cart is empty.</p>
         ) : (
           items.map((item) => (
-            <div key={item.product.id}>
+            <div key={item.id}>
               <div className="flex items-start gap-4">
                 <div className="relative w-[72px] h-[90px] flex-shrink-0 bg-gray-50 rounded-lg overflow-hidden">
-                  <Image
-                    src={item.product.image}
-                    alt={item.product.title}
-                    fill
-                    className="object-contain p-1"
-                  />
+                  <div className="w-full h-full flex items-center justify-center font-bold text-gray-300">
+                    {item.thumbnail ? (
+                      <Image
+                        src={item.thumbnail}
+                        alt={item.title}
+                        fill
+                        className="object-contain p-1"
+                      />
+                    ) : "IMG"}
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-black font-bold text-[16px] leading-tight">
-                      {item.product.title}
+                      {item.title}
                     </span>
                     <button
-                      onClick={() => onRemove(item.product.id)}
-                      className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-gray-400 flex items-center justify-center hover:border-black transition-colors"
+                      onClick={() => removeItem(item.id)}
+                      disabled={isLoading}
+                      className="flex-shrink-0 w-6 h-6 rounded-full border-2 border-gray-400 flex items-center justify-center hover:border-black transition-colors disabled:opacity-50"
                     >
                       <X className="w-3 h-3 text-gray-500" strokeWidth={2.5} />
                     </button>
@@ -110,26 +97,28 @@ function CartSidebar({
                     <div className="flex items-center gap-[10px]">
                       <button
                         onClick={() =>
-                          item.qty <= 1
-                            ? onRemove(item.product.id)
-                            : onUpdateQty(item.product.id, item.qty - 1)
+                          item.quantity <= 1
+                            ? removeItem(item.id)
+                            : updateItem(item.id, item.quantity - 1)
                         }
-                        className="w-7 h-7 rounded-full border-2 border-black flex items-center justify-center hover:bg-black hover:text-white transition-all text-[15px] font-bold"
+                        disabled={isLoading}
+                        className="w-7 h-7 rounded-full border-2 border-black flex items-center justify-center hover:bg-black hover:text-white transition-all text-[15px] font-bold disabled:opacity-50"
                       >
                         −
                       </button>
                       <span className="text-black font-bold text-[15px] w-4 text-center">
-                        {item.qty}
+                        {item.quantity}
                       </span>
                       <button
-                        onClick={() => onUpdateQty(item.product.id, item.qty + 1)}
-                        className="w-7 h-7 rounded-full border-2 border-black flex items-center justify-center hover:bg-black hover:text-white transition-all text-[15px] font-bold"
+                        onClick={() => updateItem(item.id, item.quantity + 1)}
+                        disabled={isLoading}
+                        className="w-7 h-7 rounded-full border-2 border-black flex items-center justify-center hover:bg-black hover:text-white transition-all text-[15px] font-bold disabled:opacity-50"
                       >
                         +
                       </button>
                     </div>
                     <span className="text-black font-bold text-[16px]">
-                      €{(item.product.priceNum * item.qty).toFixed(2)}
+                      €{((item.unit_price * item.quantity) / 100).toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -147,9 +136,14 @@ function CartSidebar({
           <span className="text-black font-black text-[18px]">€{subtotal.toFixed(2)}</span>
         </div>
         <div className="border-b border-gray-300 mb-5" />
-        <button className="w-full bg-black text-white font-black text-[18px] py-[16px] rounded-full hover:bg-gray-900 transition-colors">
-          Check Out
-        </button>
+        {items.length > 0 && (
+          <a
+            href="/checkout"
+            className="w-full bg-black text-white font-black text-[18px] py-[16px] rounded-full hover:bg-gray-900 transition-colors block text-center"
+          >
+            Check Out
+          </a>
+        )}
       </div>
     </div>
   );
@@ -202,19 +196,32 @@ function TiltImage({ src, alt }: { src: string; alt: string }) {
 // ─── Product Card ─────────────────────────────────────────────────────────────
 function ProductCard({
   product,
-  cartItem,
-  onAdd,
-  onIncrement,
-  onDecrement,
+  onOpenCart,
 }: {
-  product: Product;
-  cartItem: CartItem | undefined;
-  onAdd: () => void;
-  onIncrement: () => void;
-  onDecrement: () => void;
+  product: MedusaProduct;
+  onOpenCart: () => void;
 }) {
+  const { cart, addItem, updateItem, removeItem, isLoading } = useCart();
+  const cartItem = cart?.items?.find((i) => i.variant.product.id === product.id);
   const isAdded = !!cartItem;
-  const qty = cartItem?.qty ?? 0;
+  const qty = cartItem?.quantity ?? 0;
+  const [isAdding, setIsAdding] = useState(false);
+
+  const price = product.variants?.[0]?.prices?.[0];
+  const formattedPrice = price
+    ? new Intl.NumberFormat('en-IE', { style: 'currency', currency: price.currency_code }).format(price.amount / 100)
+    : "Sold out";
+
+  const handleAdd = async () => {
+    if (!product.variants?.[0]?.id || isAdding) return;
+    setIsAdding(true);
+    await addItem(product.variants[0].id, 1);
+    setIsAdding(false);
+    onOpenCart();
+  };
+
+  const handleIncrement = () => cartItem && updateItem(cartItem.id, cartItem.quantity + 1);
+  const handleDecrement = () => cartItem && (cartItem.quantity <= 1 ? removeItem(cartItem.id) : updateItem(cartItem.id, cartItem.quantity - 1));
 
   return (
     <div
@@ -225,18 +232,16 @@ function ProductCard({
         height: "620px",
       }}
     >
-      {product.isNew && (
-        <div className="absolute -top-5 -right-5 z-20">
-          <img
-            src="https://img.cah.io/images/vc07edlh/production/c0ee4be15f90a7322e8c9ed463201e62418be4f7-103x102.svg?auto=format&q=75&w=200"
-            alt="New!"
-            width={72}
-            height={72}
-            style={{ animation: "wobble 2.5s ease-in-out infinite", transformOrigin: "center center" }}
-            className="drop-shadow-md"
-          />
-        </div>
-      )}
+      <div className="absolute -top-5 -right-5 z-20">
+        <img
+          src="https://img.cah.io/images/vc07edlh/production/c0ee4be15f90a7322e8c9ed463201e62418be4f7-103x102.svg?auto=format&q=75&w=200"
+          alt="New!"
+          width={72}
+          height={72}
+          style={{ animation: "wobble 2.5s ease-in-out infinite", transformOrigin: "center center" }}
+          className="drop-shadow-md"
+        />
+      </div>
 
       <div className="px-6 pt-6" style={{ minHeight: "108px" }}>
         <h3 className="text-white font-black text-[24px] leading-[1.1] tracking-tight mb-[10px]">
@@ -247,12 +252,18 @@ function ProductCard({
         </p>
       </div>
 
-      <div className="flex-1 relative" style={{ minHeight: 0 }}>
-        <TiltImage src={product.image} alt={product.title} />
+      <div className="flex-1 flex items-center justify-center p-8">
+        {(product.thumbnail || (product as any).image) ? (
+          <TiltImage src={product.thumbnail || (product as any).image} alt={product.title} />
+        ) : (
+          <div className="text-gray-500 font-bold border border-gray-600 rounded-lg w-full h-full flex flex-col items-center justify-center text-xl">
+            Image unavailable
+          </div>
+        )}
       </div>
 
-      <div className="px-5 pb-5 pt-3">
-        {product.available ? (
+      <div className="px-5 pb-5 pt-3 mt-auto">
+        {price || (product as any).price ? (
           isAdded ? (
             <div
               className="flex items-center justify-between w-full rounded-full px-2 py-2"
@@ -260,19 +271,21 @@ function ProductCard({
             >
               <div className="flex items-center justify-between flex-1 px-4">
                 <span className="text-black font-black text-[17px]">Added!</span>
-                <span className="text-black font-black text-[17px]">{product.price}</span>
+                <span className="text-black font-black text-[17px]">{formattedPrice !== "Sold out" ? formattedPrice : (product as any).price}</span>
               </div>
               <div className="flex items-center gap-2 bg-black rounded-full px-4 py-[10px] ml-2 flex-shrink-0">
                 <button
-                  onClick={onDecrement}
-                  className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white font-black text-[13px] hover:bg-white hover:text-black transition-all duration-200"
+                  onClick={handleDecrement}
+                  disabled={isLoading}
+                  className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white font-black text-[13px] hover:bg-white hover:text-black transition-all duration-200 disabled:opacity-50"
                 >
                   −
                 </button>
                 <span className="text-white font-black text-[15px] w-4 text-center">{qty}</span>
                 <button
-                  onClick={onIncrement}
-                  className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white font-black text-[13px] hover:bg-white hover:text-black transition-all duration-200"
+                  onClick={handleIncrement}
+                  disabled={isLoading}
+                  className="w-6 h-6 rounded-full border-2 border-white flex items-center justify-center text-white font-black text-[13px] hover:bg-white hover:text-black transition-all duration-200 disabled:opacity-50"
                 >
                   +
                 </button>
@@ -280,11 +293,12 @@ function ProductCard({
             </div>
           ) : (
             <button
-              onClick={onAdd}
-              className="w-full border-2 border-white text-white font-black text-[18px] py-[15px] px-7 rounded-full flex items-center justify-between hover:bg-white hover:text-black transition-all duration-300"
+              onClick={handleAdd}
+              disabled={isAdding || isLoading}
+              className="w-full border-2 border-white text-white font-black text-[18px] py-[15px] px-7 rounded-full flex items-center justify-between hover:bg-white hover:text-black transition-all duration-300 disabled:opacity-50"
             >
-              <span>Add to Cart</span>
-              <span>{product.price}</span>
+              <span>{isAdding ? "Adding..." : "Add to Cart"}</span>
+              <span>{formattedPrice !== "Sold out" ? formattedPrice : (product as any).price}</span>
             </button>
           )
         ) : (
@@ -300,17 +314,23 @@ function ProductCard({
   );
 }
 
-// ─── Root Export ──────────────────────────────────────────────────────────────
 export default function RelatedProducts({
-  onCartCountChange,
+  products = [],
   onCartOpenChange,
 }: {
+  products?: MedusaProduct[];
   onCartCountChange?: (count: number) => void;
   onCartOpenChange?: (open: boolean) => void;
 }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  // ✅ cartOpen lives HERE — not in parent
-  const [cartOpen, setCartOpen] = useState(false);
+  const { isCartOpen, setCartOpen } = useCart();
+
+  // Use Medusa products if provided, otherwise fallback to static mapping
+  const displayProducts = products.length > 0
+    ? products
+    : relatedProductsStatic.map(staticProd => {
+      const medusaMatch = (products || []).find(p => p.handle === staticProd.handle);
+      return medusaMatch || { id: staticProd.handle, ...staticProd, thumbnail: staticProd.image, variants: [] } as any;
+    });
 
   const openCart = () => {
     setCartOpen(true);
@@ -321,40 +341,6 @@ export default function RelatedProducts({
     setCartOpen(false);
     onCartOpenChange?.(false);
   };
-
-  const syncCart = (updated: CartItem[]) => {
-    setCartItems(updated);
-    onCartCountChange?.(updated.reduce((s, i) => s + i.qty, 0));
-  };
-
-  const handleAdd = (product: Product) => {
-    const existing = cartItems.find((i) => i.product.id === product.id);
-    syncCart(
-      existing
-        ? cartItems.map((i) =>
-          i.product.id === product.id ? { ...i, qty: i.qty + 1 } : i
-        )
-        : [...cartItems, { product, qty: 1 }]
-    );
-    openCart(); // ✅ always opens immediately on add
-  };
-
-  const handleIncrement = (id: number) =>
-    syncCart(cartItems.map((i) => (i.product.id === id ? { ...i, qty: i.qty + 1 } : i)));
-
-  const handleDecrement = (id: number) => {
-    const item = cartItems.find((i) => i.product.id === id);
-    if (!item) return;
-    item.qty <= 1
-      ? syncCart(cartItems.filter((i) => i.product.id !== id))
-      : syncCart(cartItems.map((i) => (i.product.id === id ? { ...i, qty: i.qty - 1 } : i)));
-  };
-
-  const handleRemove = (id: number) =>
-    syncCart(cartItems.filter((i) => i.product.id !== id));
-
-  const handleUpdateQty = (id: number, qty: number) =>
-    syncCart(cartItems.map((i) => (i.product.id === id ? { ...i, qty } : i)));
 
   return (
     <>
@@ -378,27 +364,21 @@ export default function RelatedProducts({
             You should check out:
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {relatedProducts.map((product) => (
+            {displayProducts.map((product) => (
               <ProductCard
-                key={product.id}
-                product={product}
-                cartItem={cartItems.find((i) => i.product.id === product.id)}
-                onAdd={() => handleAdd(product)}
-                onIncrement={() => handleIncrement(product.id)}
-                onDecrement={() => handleDecrement(product.id)}
+                key={product.id || product.handle}
+                product={product as any}
+                onOpenCart={openCart}
               />
             ))}
           </div>
         </div>
       </section>
 
-      {/* ✅ cartOpen state is local — always works */}
-      {cartOpen && (
+      {/* ✅ isCartOpen state is global now */}
+      {isCartOpen && (
         <CartSidebar
-          items={cartItems}
-          onClose={closeCart}
-          onUpdateQty={handleUpdateQty}
-          onRemove={handleRemove}
+          onClose={() => setCartOpen(false)}
         />
       )}
     </>

@@ -1,11 +1,76 @@
-import { IProductModuleService } from "@medusajs/framework/types"
-import { Modules } from "@medusajs/framework/utils"
-// Seed test products matching the Cards Against Humanity catalog
+import { IProductModuleService, IRegionModuleService, ISalesChannelModuleService, IApiKeyModuleService } from "@medusajs/framework/types"
+import { Modules, ContainerRegistrationKeys } from "@medusajs/framework/utils"
+// @ts-ignore – link types may vary
+import type { RemoteLink } from "@medusajs/framework/types"
+
 export default async function seed({ container }: any) {
   const productService: IProductModuleService = container.resolve(Modules.PRODUCT)
+  const regionService: IRegionModuleService = container.resolve(Modules.REGION)
+  const salesChannelService: ISalesChannelModuleService = container.resolve(Modules.SALES_CHANNEL)
+  const apiKeyService: IApiKeyModuleService = container.resolve(Modules.API_KEY)
+  const link = container.resolve(ContainerRegistrationKeys.LINK)
 
-  console.log("Seeding products...")
+  // ── 1. Region ────────────────────────────────────────────────
+  let region: any
+  const existingRegions = await regionService.listRegions({ name: "Europe" })
+  if (existingRegions.length > 0) {
+    region = existingRegions[0]
+    console.log(`Region "Europe" already exists (${region.id}), skipping.`)
+  } else {
+    region = await regionService.createRegions({
+      name: "Europe",
+      currency_code: "eur",
+      countries: ["de", "fr", "nl", "ie", "gb"],
+    })
+    console.log(`Created region: Europe (${region.id})`)
+  }
 
+  // ── 2. Sales Channel ─────────────────────────────────────────
+  let salesChannel: any
+  const existingChannels = await salesChannelService.listSalesChannels({ name: "Default Sales Channel" })
+  if (existingChannels.length > 0) {
+    salesChannel = existingChannels[0]
+    console.log(`Sales channel already exists (${salesChannel.id}), skipping.`)
+  } else {
+    salesChannel = await salesChannelService.createSalesChannels({
+      name: "Default Sales Channel",
+      description: "Default storefront sales channel",
+      is_disabled: false,
+    })
+    console.log(`Created sales channel: ${salesChannel.id}`)
+  }
+
+  // ── 3. Publishable API Key ───────────────────────────────────
+  let pubKey: any
+  const existingKeys = await apiKeyService.listApiKeys({ title: "Frontend Storefront Key" })
+  if (existingKeys.length > 0) {
+    pubKey = existingKeys[0]
+    console.log(`Publishable key already exists: ${pubKey.token}`)
+  } else {
+    pubKey = await apiKeyService.createApiKeys({
+      title: "Frontend Storefront Key",
+      type: "publishable",
+      created_by: "system",
+    })
+    console.log(`Created publishable key: ${pubKey.token}`)
+  }
+
+  // Link API key ↔ sales channel
+  try {
+    await link.create({
+      [Modules.API_KEY]: { publishable_key_id: pubKey.id },
+      [Modules.SALES_CHANNEL]: { sales_channel_id: salesChannel.id },
+    })
+    console.log("Linked publishable key to sales channel.")
+  } catch (e: any) {
+    if (e.message?.includes("already exists") || e.message?.includes("duplicate")) {
+      console.log("Link already exists, skipping.")
+    } else {
+      console.log("Link may already exist, continuing:", e.message?.substring(0, 80))
+    }
+  }
+
+  // ── 4. Products ──────────────────────────────────────────────
   const products = [
     {
       title: "More Cards Against Humanity",
@@ -70,16 +135,35 @@ export default async function seed({ container }: any) {
   ]
 
   for (const product of products) {
-    // Check if product already exists
     const existing = await productService.listProducts({ handle: [product.handle] })
     if (existing.length > 0) {
       console.log(`Product "${product.title}" already exists, skipping.`)
+      // Link existing product to sales channel
+      try {
+        await link.create({
+          [Modules.PRODUCT]: { product_id: existing[0].id },
+          [Modules.SALES_CHANNEL]: { sales_channel_id: salesChannel.id },
+        })
+      } catch { /* ignore if already linked */ }
       continue
     }
 
-    await productService.createProducts(product)
+    const created = await productService.createProducts(product)
     console.log(`Created product: ${product.title}`)
+
+    // Link product to sales channel
+    try {
+      await link.create({
+        [Modules.PRODUCT]: { product_id: created.id },
+        [Modules.SALES_CHANNEL]: { sales_channel_id: salesChannel.id },
+      })
+    } catch { /* ignore if already linked */ }
   }
 
-  console.log("Seeding complete!")
+  console.log("\n═══════════════════════════════════════")
+  console.log("  PUBLISHABLE API KEY: " + pubKey.token)
+  console.log("═══════════════════════════════════════")
+  console.log("Add to your frontend .env.local:")
+  console.log(`  NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=${pubKey.token}`)
+  console.log("\nSeeding complete!")
 }

@@ -12,6 +12,8 @@ interface CartContextValue {
   customer: MedusaCustomer | null
   isLoading: boolean
   cartCount: number
+  isCartOpen: boolean
+  setCartOpen: (open: boolean) => void
   addItem: (variantId: string, qty?: number) => Promise<void>
   updateItem: (lineItemId: string, qty: number) => Promise<void>
   removeItem: (lineItemId: string) => Promise<void>
@@ -27,6 +29,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<MedusaCart | null>(null)
   const [customer, setCustomer] = useState<MedusaCustomer | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isCartOpen, setIsCartOpen] = useState(false)
 
   const ensureCart = useCallback(async (): Promise<MedusaCart> => {
     const existingId = getCartId()
@@ -128,8 +131,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   return (
     <CartContext.Provider value={{
-      cart, customer, isLoading, cartCount,
-      addItem, updateItem, removeItem,
+      cart, customer, isLoading, cartCount, isCartOpen,
+      addItem, updateItem, removeItem, setCartOpen: setIsCartOpen,
       login, register, logout, refreshCart,
     }}>
       {children}

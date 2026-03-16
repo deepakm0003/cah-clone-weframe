@@ -14,9 +14,11 @@
     "@medusajs/dashboard": "^2.4.0",
     "@medusajs/framework": "^2.4.0",
     "@medusajs/medusa": "^2.4.0",
+    "@neondatabase/serverless": "^1.0.2",
     "awilix": "^8.0.1",
     "cross-env": "^7.0.3",
-    "pg": "^8.11.3",
+    "dotenv": "^17.3.1",
+    "pg": "^8.20.0",
     "ts-node": "^10.9.2"
   },
   "devDependencies": {
@@ -29,4 +31,3 @@
     "node": ">=20.0.0"
   }
 }
-

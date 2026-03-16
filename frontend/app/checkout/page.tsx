@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import {
   addShippingAddress, createPaymentSessions,
-  completeCart, getCart, getCartId
+  completeCart, getCart, getCartId, selectPaymentSession
 } from "@/lib/medusa"
 import type { MedusaCart, MedusaOrder } from "@/lib/medusa"
 import { useCart } from "@/context/CartContext"
@@ -52,10 +52,22 @@ export default function CheckoutPage() {
     setIsLoading(true)
     try {
       const cartId = getCartId()!
+      
+      // Refresh cart to see payment sessions
+      const currentCart = await getCart(cartId)
+      const session = currentCart.payment_collection?.payment_sessions?.[0] || 
+                      currentCart.payment_sessions?.[0]
+      
+      if (session) {
+        await selectPaymentSession(cartId, session.id || (session as any).provider_id)
+      }
+
       const placedOrder = await completeCart(cartId)
       setOrder(placedOrder)
       setStep("confirm")
+      refreshCart()
     } catch (err: unknown) {
+      console.error("Checkout error:", err)
       setError(err instanceof Error ? err.message : "Failed to place order.")
     } finally {
       setIsLoading(false)

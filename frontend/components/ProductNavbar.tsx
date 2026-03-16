@@ -4,6 +4,7 @@
 import { ChevronDown, ChevronUp, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { useCart } from "@/context/CartContext"
 
 const shopCategories = [
   {
@@ -37,13 +38,9 @@ const helpLinks = [
   { label: "Contact", href: "https://www.cardsagainsthumanity.com/contact" },
 ];
 
-export default function ProductNavbar({
-  cartCount = 0,
-  onCartOpen,
-}: {
-  cartCount?: number;
-  onCartOpen?: () => void;
-}) {
+export default function ProductNavbar() {
+  const { cartCount, setCartOpen } = useCart();
+  
   const [cartHovered, setCartHovered] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -122,7 +119,7 @@ export default function ProductNavbar({
 
               {/* Cart */}
               <button
-                onClick={onCartOpen}
+                onClick={() => setCartOpen(true)}
                 onMouseEnter={() => setCartHovered(true)}
                 onMouseLeave={() => setCartHovered(false)}
                 className="relative flex items-center justify-center cursor-pointer"

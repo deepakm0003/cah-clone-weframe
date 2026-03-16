@@ -4,6 +4,7 @@ export const Homepage: GlobalConfig = {
   slug: 'homepage',
   access: {
     read: () => true,
+    update: ({ req: { user } }) => !!user,
   },
   fields: [
     {

@@ -9,6 +9,7 @@ export const FooterGlobal: GlobalConfig = {
   slug: 'footer',
   access: {
     read: () => true,
+    update: ({ req: { user } }) => !!user,
   },
   fields: [
     {

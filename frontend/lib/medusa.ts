@@ -38,6 +38,21 @@ export interface MedusaCart {
   tax_total: number
   region_id: string
   email?: string
+  shipping_address?: any
+  billing_address?: any
+  payment_collection?: {
+    id: string
+    payment_sessions: {
+      id: string
+      provider_id: string
+      amount: number
+    }[]
+  }
+  payment_sessions?: {
+    id: string
+    provider_id: string
+    amount: number
+  }[]
 }
 
 export interface MedusaCustomer {
@@ -75,18 +90,26 @@ export function clearCartId() {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+const PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || '';
+
 async function medusaFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string>),
+  };
+
+  if (PUBLISHABLE_KEY) {
+    headers['x-publishable-api-key'] = PUBLISHABLE_KEY;
+  }
+
   const res = await fetch(`${MEDUSA_URL}/store${path}`, {
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    credentials: 'omit',
     ...options,
-  })
+    headers,
+  });
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({}))
@@ -246,10 +269,16 @@ export async function createPaymentSessions(cartId: string): Promise<MedusaCart>
 }
 
 export async function completeCart(cartId: string): Promise<MedusaOrder> {
-  const data = await medusaFetch<{ type: string; data: MedusaOrder }>(
-    `/carts/${cartId}/complete`,
-    { method: 'POST' }
-  )
+  const res = await medusaFetch<{ order: MedusaOrder }>(`/carts/${cartId}/complete`, {
+    method: 'POST',
+  })
   clearCartId()
-  return data.data
+  return res.order
+}
+
+export async function selectPaymentSession(cartId: string, providerId: string) {
+  return medusaFetch(`/carts/${cartId}/payment-sessions`, {
+    method: 'POST',
+    body: JSON.stringify({ provider_id: providerId }),
+  })
 }
